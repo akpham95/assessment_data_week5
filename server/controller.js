@@ -12,12 +12,13 @@ const sequelize = new Sequelize(CONNECTION_STRING, {
 
 module.exports = {
     deleteCity: (req, res) =>{
-        let {id} = req.param
+        let {id} = req.params // forgot to add 's' at end the params
 
         sequelize.query(`
             DELETE
             FROM cities
-            WHERE cities.city_id = ${id}`)
+            WHERE city_id = ${id}
+            `) 
             .then(dbRes => res.status(200).send(dbRes[0]))
             .catch(err => console.log(err))
     },
@@ -27,7 +28,9 @@ module.exports = {
             SELECT cities.city_id, cities.name AS city, cities.rating, countries.country_id, countries.name AS country
             FROM cities
             JOIN countries
-            WHERE cities.country_id = countries.country_id;`)
+            ON cities.country_id = countries.country_id
+            ORDER BY rating DESC
+            `) //changed WHERE to ON, added bonus point feature listing in order
             .then(dbRes => res.status(200).send(dbRes[0]))
             .catch(err => console.log(err))
     },
@@ -35,18 +38,18 @@ module.exports = {
     createCity: (req, res) => {
 
         const {name, rating, countryId} = req.body
-
+        
         sequelize.query(`
-            INSERT INTO cities (name, rating, countryId)
-            VALUES ('${name}, '${rating}, '${countryId})
-            ;`)
+            INSERT INTO cities (name, rating, country_id) 
+            VALUES ('${name}', ${rating}, ${countryId}) 
+            `)
             .then(dbRes => res.status(200).send(dbRes[0]))
             .catch(err => console.log(err))
     },
     
 
     getCountries: (req, res) => {
-        sequelize.query(`select * from countries;`)
+        sequelize.query(`select * from countries`)
         .then(dbRes => res.status(200).send(dbRes[0]))
         .catch(err => console.log(err))
     },
@@ -264,7 +267,13 @@ module.exports = {
             ('Yemen'),
             ('Zambia'),
             ('Zimbabwe');
-        `).then(() => {
+
+            INSERT INTO cities (name, rating, country_id)   
+            VALUES ('Houston', 5, 187),
+            ('Dallas', 5, 187),
+            ('Austin', 3, 187); 
+        `) //added to initially insert 3 entries into Cities table
+        .then(() => {
             console.log('DB seeded!')
             res.sendStatus(200)
         }).catch(err => console.log('error seeding DB', err))
